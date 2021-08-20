@@ -1,19 +1,20 @@
 <template>
-  <div class="v-modal" @click.self="closeModal">
+  <div class="modal" @click.self="closeModal">
     <form class="modal-form">
-      <input v-model="postBody.username" />
-      <input v-model="postBody.password" />
+      <input placeholder="USERNAME" v-model="postBody.username" />
+      <input placeholder="PASSWORD" v-model="postBody.password" />
       <button @click="login">SEND</button>
     </form>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+// import axios from "axios";
 export default {
   name: "VModal",
   data() {
     return {
+      requestURL: "https://reqres.in/api/articles",
       postBody: {
         username: "",
         password: "",
@@ -24,26 +25,49 @@ export default {
     closeModal() {
       this.$emit("on-modal-close");
     },
+    login() {
+      function sendRequest(method, url, body = null) {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-    async login() {
-      const response = await axios.post(
-        "https://reqres.in/api/articles",
-        this.postBody
-      );
-      console.log(response);
+          xhr.open(method, url);
+
+          xhr.responseType = "json";
+          xhr.setRequestHeader("Content-Type", "application/json");
+
+          xhr.onload = () => {
+            if (xhr.status >= 400) {
+              reject(xhr.response);
+            } else {
+              resolve(xhr.response);
+            }
+          };
+
+          xhr.onerror = () => {
+            reject(xhr.response);
+          };
+
+          xhr.send(JSON.stringify(body));
+        });
+      }
+
+      sendRequest("POST", this.requestURL, this.postBody)
+        .then((data) => console.log(data))
+        .catch((err) => console.log(err));
     },
-    // postPost() {
-    //   const str = JSON.stringify(this.postBody);
-    //   axios.post("https://jsonplaceholder.typicode.com/users", str).then((response) => {
-    //     console.log(response);
-    //   });
+    // async login() {
+    //   const response = await axios.post(
+    //     "https://reqres.in/api/articles",
+    //     this.postBody
+    //   );
+    //   console.log(response);
     // },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.v-modal {
+.modal {
   position: absolute;
   top: 0;
   left: 0;
@@ -52,7 +76,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-
   background-color: rgba(0, 0, 0, 0.3);
 }
 .modal-form {
